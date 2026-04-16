@@ -117,6 +117,18 @@ test {
     useJUnitPlatform()
 }
 
+// Tarea para ejecutar solo los tests unitarios (excluye paquetes de E2E/Selenium/Playwright)
+tasks.register('unitTest', Test) {
+    description = 'Ejecuta solo los tests unitarios (excluye selenium/playwright)'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    // incluir solo tests del paquete principal y excluir pruebas E2E conocidas
+    include '**/co/uniquindio/**'
+    exclude '**/selenium/**', '**/playwright/**'
+}
+
 tasks.register('seedMongo', JavaExec) {
     group = 'development'
     description = 'Inserta datos demo en MongoDB (cuentas, productos, mesas) y valida la conexión.'

@@ -1,42 +1,86 @@
-name: CI - JUnit Tests
+name: CI
 
 on:
   push:
+    branches: [ main, master ]
   pull_request:
+    branches: [ main, master ]
 
 permissions:
   contents: read
 
 jobs:
-  junit-tests:
-    name: Run unit tests with Gradle
+  unit-tests:
+    name: Unit tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17 (Temurin) + Gradle cache
+      - name: Set up JDK 21 (Temurin) + Gradle cache
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
           cache: gradle
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Run JUnit unit tests with Gradle
-        run: ./gradlew --no-daemon clean test --tests "co.uniquindio.tiendasana.*"
+      - name: Run unit tests (Gradle task unitTest)
+        run: ./gradlew --no-daemon unitTest
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: junit-test-reports
+          name: unit-test-reports
           path: |
             build/reports/tests/test
             build/test-results/test
+          retention-days: 7
+
+  integration-tests:
+    name: Integration tests (manual)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    services:
+      mongo:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'" --health-interval=5s --health-timeout=2s --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Wait for Mongo
+        run: |
+          for i in `seq 1 30`; do
+            nc -z localhost 27017 && echo "Mongo up" && break
+            echo "Waiting for mongo..."; sleep 2
+          done
+
+      - name: Run all tests (integration)
+        run: ./gradlew --no-daemon test
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-report
+          path: build/reports/tests/test
           retention-days: 7
 
 
