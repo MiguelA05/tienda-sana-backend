@@ -1,5 +1,7 @@
 package co.uniquindio.tiendasana.controllers;
 
+import co.uniquindio.tiendasana.dto.aidtos.AiRecommendationRequestDTO;
+import co.uniquindio.tiendasana.dto.aidtos.AiRecommendationResponseDTO;
 import co.uniquindio.tiendasana.dto.jwtdtos.MessageDTO;
 import co.uniquindio.tiendasana.dto.mesadtos.FiltroMesaDTO;
 import co.uniquindio.tiendasana.dto.mesadtos.ListaMesasDTO;
@@ -35,6 +37,7 @@ public class PublicoController {
     private final VentaProductoService ventaProductoService;
     private final ReservaService reservaService;
     private final MesaService mesaService;
+    private final AiRecommendationService aiRecommendationService;
 
     /**
      *  Endporint mediante el cual se obtienen los productos que verán los clientes
@@ -129,6 +132,13 @@ public class PublicoController {
     public ResponseEntity<MessageDTO<List<String>>>  listarLocalidades() throws Exception{
         List<String> localidadesMesa = mesaService.listarLocalidades();
         return ResponseEntity.ok(new MessageDTO<>(false,localidadesMesa));
+    }
+
+    @PostMapping("/ai/recommendations")
+    public ResponseEntity<MessageDTO<AiRecommendationResponseDTO>> recomendarCombosIA(
+            @Valid @RequestBody AiRecommendationRequestDTO requestDTO) throws Exception {
+        AiRecommendationResponseDTO responseDTO = aiRecommendationService.generarRecomendaciones(requestDTO);
+        return ResponseEntity.ok(new MessageDTO<>(false, responseDTO));
     }
 
 }
