@@ -13,9 +13,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import org.junit.jupiter.api.Tag;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
+@Tag("e2e")
 public class TiendaSanaE2ETests {
 /**
     Playwright playwright;

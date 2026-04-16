@@ -1,6 +1,7 @@
 package selenium;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -9,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
+@Tag("e2e")
 public class RegisterTest extends BaseTest { // Asegúrate de que BaseTest esté correctamente configurado
 
     @Test
