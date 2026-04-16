@@ -1,0 +1,42 @@
+name: CI - JUnit Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  junit-tests:
+    name: Run unit tests with Gradle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (Temurin) + Gradle cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run JUnit unit tests with Gradle
+        run: ./gradlew --no-daemon clean test --tests "co.uniquindio.tiendasana.*"
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-test-reports
+          path: |
+            build/reports/tests/test
+            build/test-results/test
+          retention-days: 7
+
+

@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+set -eu
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "[pre-push] Running JUnit tests with Gradle..."
+
+# Check if Java is available
+if command -v java >/dev/null 2>&1; then
+  JAVA_OK=1
+else
+  JAVA_OK=0
+fi
+
+if [ "$JAVA_OK" -ne 1 ]; then
+  echo "[pre-push] ERROR: Java not found in PATH and JAVA_HOME not set. The Gradle wrapper needs a JDK to run tests."
+  echo ""
+  echo "  Solución rápida (temporal, PowerShell):"
+  echo "    $env:JAVA_HOME = 'C:\\ruta\\a\\jdk' ; $env:Path = \"$env:JAVA_HOME\\bin;$env:Path\""
+  echo "  Ejemplo de instalación recomendada: Instala Eclipse Temurin (OpenJDK) 17: https://adoptium.net/"
+  echo "  Después, configura las variables de entorno del sistema (JAVA_HOME) y añade %JAVA_HOME%\\bin al PATH, y reinicia GitHub Desktop/terminal."
+  echo ""
+  echo "  Si estás usando GitHub Desktop y necesitas empujar urgentemente, puedes usar desde la CLI: git push --no-verify  (NO recomendado)."
+  echo ""
+  echo "[pre-push] Tests failed. Push blocked because Java is not available to run Gradle tests."
+  exit 1
+fi
+
+# Prefer gradlew.bat on Windows environments that provide it
+GRADLEW="./gradlew"
+if [ -f "gradlew.bat" ] && [ -n "$(uname 2>/dev/null | grep -i mingw || true)" ]; then
+  GRADLEW="./gradlew.bat"
+fi
+
+# Run only unit tests under the main test package.
+if ! $GRADLEW test --no-daemon --tests "co.uniquindio.tiendasana.*"; then
+  echo "[pre-push] Tests failed. Push blocked."
+  exit 1
+fi
+
+echo "[pre-push] Tests passed. Push allowed."
