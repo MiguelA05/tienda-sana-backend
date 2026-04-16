@@ -248,7 +248,7 @@ public class ProductoServiceImp implements ProductoService {
 
 
 
-        int pageSize = 9;
+        int pageSize = ProductoConstantes.ELEMENTOSPAGINA;
 
         int totalItems = visibles.size();
 
