@@ -10,7 +10,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -212,9 +215,52 @@ public class CarritoComprasRepo {
             return Optional.empty();
         }
         if (carritosObtenidos.size() > 1) {
-            throw new IOException("Mas de un carrite tiene ese usuario");
+            CarritoCompras consolidado = consolidarCarritosDuplicados(idUsuario, carritosObtenidos);
+            return Optional.of(consolidado);
         }
         return Optional.of(carritosObtenidos.get(0));
+    }
+
+    private CarritoCompras consolidarCarritosDuplicados(String idUsuario, List<CarritoCompras> carritosObtenidos) throws IOException {
+        CarritoCompras principal = carritosObtenidos.stream()
+                .max(Comparator.comparing(CarritoCompras::getFecha))
+                .orElseThrow(() -> new IOException("No fue posible consolidar carritos duplicados de " + idUsuario));
+
+        Map<String, DetalleCarrito> byProducto = new LinkedHashMap<>();
+        for (CarritoCompras carrito : carritosObtenidos) {
+            List<DetalleCarrito> detalles = carrito.getProductos() != null ? carrito.getProductos() : new ArrayList<>();
+            for (DetalleCarrito detalle : detalles) {
+                if (detalle == null || detalle.getProductoId() == null || detalle.getProductoId().isBlank()) {
+                    continue;
+                }
+
+                DetalleCarrito existente = byProducto.get(detalle.getProductoId());
+                if (existente == null) {
+                    DetalleCarrito nuevo = new DetalleCarrito();
+                    nuevo.setIdCarrito(principal.getId());
+                    nuevo.setProductoId(detalle.getProductoId());
+                    nuevo.setCantidad(Math.max(detalle.getCantidad(), 0));
+                    nuevo.setSubtotal(detalle.getSubtotal());
+                    byProducto.put(nuevo.getProductoId(), nuevo);
+                } else {
+                    int cantidadActualizada = Math.max(existente.getCantidad(), 0) + Math.max(detalle.getCantidad(), 0);
+                    existente.setCantidad(cantidadActualizada);
+                    existente.setSubtotal(existente.getSubtotal() + detalle.getSubtotal());
+                }
+            }
+        }
+
+        principal.setProductos(new ArrayList<>(byProducto.values()));
+        principal.setFecha(LocalDateTime.now());
+        actualizarCarrito(principal);
+
+        for (CarritoCompras carrito : carritosObtenidos) {
+            if (!carrito.getId().equals(principal.getId())) {
+                mongo.deleteById(carrito.getId());
+            }
+        }
+
+        return principal;
     }
 
     public void eliminarDetalles(List<DetalleCarrito> detallesEliminar) throws IOException {
