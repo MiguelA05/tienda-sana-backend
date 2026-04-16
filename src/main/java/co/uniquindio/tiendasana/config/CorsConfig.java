@@ -1,16 +1,27 @@
 package co.uniquindio.tiendasana.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource; // Importa esta
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List; // Importa esta
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class CorsConfig {
+
+        private final List<String> allowedOrigins;
+
+        public CorsConfig(@Value("${cors.allowed-origins:http://localhost:4200}") String allowedOriginsProperty) {
+                this.allowedOrigins = Arrays.stream(allowedOriginsProperty.split(","))
+                                .map(String::trim)
+                                .filter(origin -> !origin.isBlank())
+                                .collect(Collectors.toList());
+        }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -18,11 +29,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-
-        config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:4200",                  // Para desarrollo local
-                "https://tienda-sana-frontend.vercel.app" // Para tu frontend desplegado en Vercel
-        ));
+                config.setAllowedOrigins(allowedOrigins.isEmpty() ? List.of("http://localhost:4200") : allowedOrigins);
 
         config.setAllowedHeaders(Arrays.asList(
                 "Authorization", "Content-Type", "X-Requested-With", "accept", "Origin",
@@ -34,7 +41,6 @@ public class CorsConfig {
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setMaxAge(3600L);
 
-        // Aplica esta configuración a todas las rutas (o ajusta si es necesario, ej. "/api/**")
         source.registerCorsConfiguration("/**", config);
         return source;
     }
