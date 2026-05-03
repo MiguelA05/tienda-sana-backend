@@ -10,7 +10,6 @@ import org.hibernate.validator.constraints.Length;
 /**
  * Data transfer object para mostrar informacion de la cuenta cuando sea solicitado
  * @param email
- * @param dni
  * @param nombre
  * @param telefono
  * @param direccion
@@ -19,10 +18,6 @@ public record InfoCuentaDTO(
         @NotBlank(message = "Email no puede estar vacio")
         @Email(message = "Formato del email no es valido")
         String email,
-
-        @NotBlank(message = "El campo DNI es obligatorio")
-        @Length(max = 10, message = "The DNI must have a maximum of 10 characters")
-        String dni,
 
         @NotBlank(message = "The name cannot be empty")
         @Size(min = 1, max = 100, message = "The name must be between 1 and 100 characters")

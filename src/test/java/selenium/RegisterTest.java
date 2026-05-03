@@ -18,7 +18,6 @@ public class RegisterTest extends BaseTest { // Asegúrate de que BaseTest esté
         driver.get(BASE_URL + "/register"); // La URL base debe estar definida en BaseTest
 
         // Identificadores de los campos del formulario de registro según el HTML proporcionado
-        WebElement dniField = driver.findElement(By.id("dni"));
         WebElement nombreField = driver.findElement(By.id("nombre"));
         // Nota: El campo 'apellido' no está en el HTML proporcionado. Si es necesario, añádelo.
         // WebElement apellidoField = driver.findElement(By.id("apellido"));
@@ -37,9 +36,7 @@ public class RegisterTest extends BaseTest { // Asegúrate de que BaseTest esté
 
         // Usar un email único para cada ejecución de prueba
         String uniqueEmail = "testuser" + System.currentTimeMillis() + "@example.com";
-        String testDni = String.valueOf(System.currentTimeMillis() % 10000000000L); // DNI numérico de 10 dígitos
 
-        dniField.sendKeys(testDni);
         nombreField.sendKeys("Tester Selenium");
         // apellidoField.sendKeys("UsuarioPrueba"); // Si se añade el campo apellido
         direccionField.sendKeys("Calle Falsa 123, Ciudad Test");
@@ -70,7 +67,6 @@ public class RegisterTest extends BaseTest { // Asegúrate de que BaseTest esté
     public void testRegistrationWithMismatchedPasswords() {
         driver.get(BASE_URL + "/registro");
 
-        WebElement dniField = driver.findElement(By.id("dni"));
         WebElement nombreField = driver.findElement(By.id("nombre"));
         // WebElement apellidoField = driver.findElement(By.id("apellido")); // Si se añade
         WebElement direccionField = driver.findElement(By.id("direccion"));
@@ -82,10 +78,7 @@ public class RegisterTest extends BaseTest { // Asegúrate de que BaseTest esté
         WebElement registerButton = driver.findElement(By.cssSelector("button.btn-primary[type='submit']"));
 
         String uniqueEmailMismatch = "mismatch" + System.currentTimeMillis() + "@example.com";
-        String testDniMismatch = String.valueOf(System.currentTimeMillis() % 10000000000L).substring(0,10);
 
-
-        dniField.sendKeys(testDniMismatch);
         nombreField.sendKeys("Test Mismatch");
         // apellidoField.sendKeys("User Mismatch"); // Si se añade
         direccionField.sendKeys("Otra Calle Falsa 456");

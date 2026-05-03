@@ -7,14 +7,12 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 public class Usuario {
-    private String dni;
     private String nombre;
     private String direccion;
     private String telefono;
 
     @Builder
-    private Usuario(String dni, String nombre, String direccion, String telefono) {
-        this.dni = dni;
+    private Usuario(String nombre, String direccion, String telefono) {
         this.nombre = nombre;
         this.direccion = direccion;
         this.telefono = telefono;

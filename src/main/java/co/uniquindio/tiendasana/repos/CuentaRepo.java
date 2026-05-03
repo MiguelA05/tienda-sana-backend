@@ -36,26 +36,25 @@ public class CuentaRepo {
 
     public Cuenta mapearCuenta(List<Object> row) {
         Usuario usuario = Usuario.builder()
-                .dni(row.get(0).toString())
-                .nombre(row.get(1).toString())
-                .telefono(row.get(2).toString())
-                .direccion(row.get(3).toString())
+                .nombre(row.get(0).toString())
+                .telefono(row.get(1).toString())
+                .direccion(row.get(2).toString())
                 .build();
 
-        String email = row.get(4).toString();
-        String contrasenia = row.get(5).toString();
-        Rol rol = Rol.valueOf(row.get(6).toString().toUpperCase());
-        EstadoCuenta estado = EstadoCuenta.valueOf(row.get(7).toString().toUpperCase());
-        LocalDateTime fechaRegistro = LocalDateTime.parse(row.get(8).toString());
+        String email = row.get(3).toString();
+        String contrasenia = row.get(4).toString();
+        Rol rol = Rol.valueOf(row.get(5).toString().toUpperCase());
+        EstadoCuenta estado = EstadoCuenta.valueOf(row.get(6).toString().toUpperCase());
+        LocalDateTime fechaRegistro = LocalDateTime.parse(row.get(7).toString());
 
         CodigoValidacion codigoValidacionRegistro = CodigoValidacion.builder()
-                .codigo(row.get(9).toString())
-                .fechaCreacion(LocalDateTime.parse(row.get(10).toString()))
+                .codigo(row.get(8).toString())
+                .fechaCreacion(LocalDateTime.parse(row.get(9).toString()))
                 .build();
 
         CodigoValidacion codigoValidacionContrasenia = CodigoValidacion.builder()
-                .codigo(row.get(11).toString())
-                .fechaCreacion(LocalDateTime.parse(row.get(12).toString()))
+                .codigo(row.get(10).toString())
+                .fechaCreacion(LocalDateTime.parse(row.get(11).toString()))
                 .build();
 
         return Cuenta.builder()
@@ -75,7 +74,6 @@ public class CuentaRepo {
         CodigoValidacion codigoValidacionRegistro = cuenta.getCodigoValidacionRegistro();
         CodigoValidacion codigoValidacionContrasenia = cuenta.getCodigoValidacionContrasenia();
         return Arrays.asList(
-                usuario.getDni(),
                 usuario.getNombre(),
                 usuario.getTelefono(),
                 usuario.getDireccion(),
@@ -116,17 +114,6 @@ public class CuentaRepo {
         mongo.save(toDocument(cuenta));
     }
 
-    public Optional<Cuenta> obtenerPorDNI(String dni) throws IOException {
-        List<Cuenta> cuentasObtenidas = filtrar(cuenta -> cuenta.getUsuario().getDni().equals(dni));
-        if (cuentasObtenidas.isEmpty()) {
-            return Optional.empty();
-        }
-        if (cuentasObtenidas.size() > 1) {
-            throw new IOException("Mas de una cuenta tiene ese dni");
-        }
-        return Optional.of(cuentasObtenidas.get(0));
-    }
-
     public Optional<Cuenta> obtenerPorEmail(String email) throws IOException {
         List<Cuenta> cuentasObtenidas = filtrar(cuenta -> cuenta.getEmail().equals(email));
         if (cuentasObtenidas.isEmpty()) {
@@ -138,8 +125,8 @@ public class CuentaRepo {
         return Optional.of(cuentasObtenidas.get(0));
     }
 
-    public List<Cuenta> obtenerPorDniOEmail(String dni, String email) {
-        return mongo.findByDniOrEmailMatch(dni, email).stream().map(this::toCuenta).collect(Collectors.toList());
+    public List<Cuenta> obtenerPorEmailMongo(String email) {
+        return mongo.findByEmail(email).stream().map(this::toCuenta).collect(Collectors.toList());
     }
 
     private CuentaDocument toDocument(Cuenta c) {
@@ -148,7 +135,6 @@ public class CuentaRepo {
         CodigoValidacion cc = c.getCodigoValidacionContrasenia();
         return CuentaDocument.builder()
                 .email(c.getEmail())
-                .dni(u.getDni())
                 .nombre(u.getNombre())
                 .telefono(u.getTelefono())
                 .direccion(u.getDireccion())
@@ -165,7 +151,6 @@ public class CuentaRepo {
 
     private Cuenta toCuenta(CuentaDocument d) {
         Usuario usuario = Usuario.builder()
-                .dni(d.getDni())
                 .nombre(d.getNombre())
                 .telefono(d.getTelefono())
                 .direccion(d.getDireccion())

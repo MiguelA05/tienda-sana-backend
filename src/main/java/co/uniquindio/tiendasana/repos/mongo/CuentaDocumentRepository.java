@@ -9,8 +9,6 @@ import java.util.Optional;
 
 public interface CuentaDocumentRepository extends MongoRepository<CuentaDocument, String> {
 
-    Optional<CuentaDocument> findByDni(String dni);
-
-    @Query("{ $or: [ { 'dni': ?0 }, { '_id': ?1 } ] }")
-    List<CuentaDocument> findByDniOrEmailMatch(String dni, String email);
+    @Query("{ 'email': ?0 }")
+    List<CuentaDocument> findByEmail(String email);
 }

@@ -47,7 +47,7 @@ public class CuentaServiceImp implements CuentaService {
     @Override
     public String crearCuenta(CrearCuentaDTO cuentaDTO) throws Exception {
         List<Cuenta> cuentasObtenidas =
-                cuentaRepo.obtenerPorDniOEmail(cuentaDTO.dni(), cuentaDTO.email());
+                cuentaRepo.obtenerPorEmailMongo(cuentaDTO.email());
 
         if (!cuentasObtenidas.isEmpty()) {
             Cuenta cuentaExistente = cuentasObtenidas.get(0);
@@ -61,7 +61,7 @@ public class CuentaServiceImp implements CuentaService {
                 cuentaRepo.actualizar(cuentaExistente);
                 return cuentaExistente.getEmail();
             }
-            throw new Exception("Ya existe una cuenta con ese correo o dni");
+            throw new Exception("Ya existe una cuenta con ese correo");
         }
         String contraseniaEncriptada = encriptarContrasenia(cuentaDTO.contrasenia());
         String codigoValidacion = generarCodigoValidacion();
@@ -73,7 +73,6 @@ public class CuentaServiceImp implements CuentaService {
                 .estado(EstadoCuenta.INACTIVA)
                 .fechaRegistro(LocalDateTime.now())
                 .usuario(Usuario.builder()
-                        .dni(cuentaDTO.dni())
                         .nombre(cuentaDTO.nombre())
                         .telefono(cuentaDTO.telefono())
                         .direccion(cuentaDTO.direccion())
@@ -151,7 +150,6 @@ public class CuentaServiceImp implements CuentaService {
         Cuenta cuenta = obtenerCuentaPorEmail(emailAConsultar);
         return new InfoCuentaDTO(
                 cuenta.getEmail(),
-                cuenta.getUsuario().getDni(),
                 cuenta.getUsuario().getNombre(),
                 cuenta.getUsuario().getTelefono(),
                 cuenta.getUsuario().getDireccion()

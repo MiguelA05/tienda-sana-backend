@@ -20,8 +20,6 @@ public class CuentaDocument {
     @Id
     private String email;
 
-    @Indexed
-    private String dni;
     private String nombre;
     private String telefono;
     private String direccion;
