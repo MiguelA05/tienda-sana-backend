@@ -36,10 +36,12 @@ public class AdminAnalyticsController {
     public ResponseEntity<MessageDTO<DashboardOverviewDto>> dashboard(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
-            @RequestParam(defaultValue = "true") boolean comparePrevious) {
+            @RequestParam(required = false) Boolean comparePrevious) {
         LocalDate t = defaultTo(to);
         LocalDate f = defaultFrom(from, t);
-        return ResponseEntity.ok(new MessageDTO<>(false, analyticsService.dashboard(f, t, comparePrevious)));
+        // Sin parámetro → comparar (comportamiento por defecto). false explícito → no comparar.
+        boolean compare = comparePrevious == null || comparePrevious;
+        return ResponseEntity.ok(new MessageDTO<>(false, analyticsService.dashboard(f, t, compare)));
     }
 
     @GetMapping("/sales")
