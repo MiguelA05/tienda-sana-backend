@@ -117,7 +117,6 @@ public final class MongoSeedCli {
                             (database, timestamp) -> {
                                 List<Document> accounts = List.of(
                                         new Document("_id", "cliente.demo@tiendasana.local")
-                                                .append("dni", "1090123456")
                                                 .append("nombre", "Cliente Demo")
                                                 .append("telefono", "3001234567")
                                                 .append("direccion", "Calle 10 # 20-30")
@@ -130,7 +129,6 @@ public final class MongoSeedCli {
                                                 .append("codigoContrasenia", "SEED02")
                                                 .append("fechaCodigoContrasenia", timestamp),
                                         new Document("_id", "admin@tiendasana.local")
-                                                .append("dni", "8000123456")
                                                 .append("nombre", "Administrador Demo")
                                                 .append("telefono", "3009876543")
                                                 .append("direccion", "Tienda Sana HQ")

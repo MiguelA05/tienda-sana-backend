@@ -12,7 +12,7 @@ public interface CuentaService {
      * Metodo que crea una cuenta apartir de la inforamción de un formulario de la vista
      * @param cuentaDTO Data transfer object que tiene la informacion del formulario de registro
      * @return Email de la cuenta
-     * @throws Exception Error en caso de que una cuenta ya tenga el correo o dni indicado
+     * @throws Exception Error en caso de que ya exista una cuenta con el correo indicado
      */
     String crearCuenta(CrearCuentaDTO cuentaDTO) throws Exception;
 

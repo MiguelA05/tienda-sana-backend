@@ -30,9 +30,7 @@ public class TiendaSanaE2ETests {
     private final String USER_PASSWORD_VALID = "@Miguel0515";
     private final String USER_EMAIL_NEW = "testuser" + System.currentTimeMillis() + "@example.com";
     private final String USER_NOMBRE_NEW = "Test Simple";
-    private final String USER_APELLIDO_NEW = "Usuario"; // Apellido es requerido por el DTO pero no estaba en el form anterior
-    private final String USER_DNI_NEW = "1099999999"; // Nuevo campo Cédula/DNI
-    private final String USER_DIRECCION_NEW = "Calle Falsa 123"; // Nuevo campo Dirección
+    private final String USER_DIRECCION_NEW = "Calle Falsa 123 # 45-67 Centro";
     private final String USER_TELEFONO_NEW = "3001112233";
 
 
@@ -78,8 +76,7 @@ public class TiendaSanaE2ETests {
     void testSuccessfulUserRegistration_Simple() {
         page.navigate(BASE_URL + "/register");
 
-        // Llenar los campos del formulario de registro incluyendo los nuevos
-        page.fill("#dni", USER_DNI_NEW); // Nuevo campo Cédula
+        // Campos alineados con RegisterComponent
         page.fill("#nombre", USER_NOMBRE_NEW);
         page.fill("#direccion", USER_DIRECCION_NEW); // Nuevo campo Dirección
         page.fill("#telefono", USER_TELEFONO_NEW);
@@ -98,8 +95,8 @@ public class TiendaSanaE2ETests {
         // Usaremos getByRole para mayor robustez si el texto cambia debido a isLoading
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName(Pattern.compile("Registrarse|Procesando...", Pattern.CASE_INSENSITIVE))).click();
 
-        assertThat(page).hasURL(Pattern.compile(BASE_URL + "/login"), new PageAssertions.HasURLOptions().setTimeout(25000));
-        System.out.println("Registro simple exitoso para: " + USER_EMAIL_NEW + ". Redirigido a login.");
+        assertThat(page).hasURL(Pattern.compile(BASE_URL + "/verificar-cuenta.*"), new PageAssertions.HasURLOptions().setTimeout(25000));
+        System.out.println("Registro simple exitoso para: " + USER_EMAIL_NEW + ". Redirigido a verificación de cuenta.");
     }
 
     @Test
