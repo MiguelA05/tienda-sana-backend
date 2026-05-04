@@ -53,3 +53,5 @@ bin/
 src/main/resources/credentials.json
 
 /scripts/mongo
+
+.env
