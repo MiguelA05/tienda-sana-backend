@@ -45,7 +45,7 @@ public class AdminProductLotService {
         }
         ProductoDocument product = productRepo.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productId));
-        return createLot(product, OPENING_STOCK_SUPPLIER_ID, java.time.LocalDate.now(), quantity, 0.0);
+        return createLot(product, OPENING_STOCK_SUPPLIER_ID, java.time.LocalDateTime.now(), quantity, 0.0);
     }
 
     @Transactional
@@ -100,7 +100,7 @@ public class AdminProductLotService {
     }
 
     @Transactional
-    private ProductLotResponse createLot(ProductoDocument product, String supplierId, java.time.LocalDate entryDate, int quantity, double unitValue) {
+    private ProductLotResponse createLot(ProductoDocument product, String supplierId, java.time.LocalDateTime entryDate, int quantity, double unitValue) {
         if (!OPENING_STOCK_SUPPLIER_ID.equals(supplierId)) {
             supplierRepo.findById(supplierId)
                     .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + supplierId));

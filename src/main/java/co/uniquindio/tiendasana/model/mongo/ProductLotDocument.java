@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -29,7 +29,7 @@ public class ProductLotDocument {
     @Indexed
     private String supplierId;
 
-    private LocalDate entryDate;
+    private LocalDateTime entryDate;
 
     private int quantity;
     private double unitValue;
