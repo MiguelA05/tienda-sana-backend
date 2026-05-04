@@ -17,6 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminProductLotService {
 
+    public static final String OPENING_STOCK_SUPPLIER_ID = "__OPENING_STOCK__";
+
     private final ProductLotDocumentRepository lotRepo;
     private final ProductoDocumentRepository productRepo;
     private final SupplierDocumentRepository supplierRepo;
@@ -31,27 +33,24 @@ public class AdminProductLotService {
     public ProductLotResponse create(ProductLotRequest req) {
         ProductoDocument product = productRepo.findById(req.productId())
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + req.productId()));
-        supplierRepo.findById(req.supplierId())
-                .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + req.supplierId()));
-
-        ProductLotDocument lot = ProductLotDocument.builder()
-                .productId(req.productId())
-                .supplierId(req.supplierId())
-                .entryDate(req.entryDate())
-                .quantity(req.quantity())
-                .unitValue(req.unitValue())
-                .build();
-        lot = lotRepo.save(lot);
-
-        product.setStockQuantity(product.getStockQuantity() + req.quantity());
-        productRepo.save(product);
-
-        return toResponse(lot);
+        return createLot(product, req.supplierId(), req.entryDate(), req.quantity(), req.unitValue());
     }
+
+        public ProductLotResponse registerOpeningStock(String productId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("La cantidad inicial debe ser mayor a cero");
+        }
+        ProductoDocument product = productRepo.findById(productId)
+            .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productId));
+        return createLot(product, OPENING_STOCK_SUPPLIER_ID, java.time.LocalDate.now(), quantity, 0.0);
+        }
 
     public ProductLotResponse update(String id, ProductLotRequest req) {
         ProductLotDocument lot = lotRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado: " + id));
+        if (OPENING_STOCK_SUPPLIER_ID.equals(lot.getSupplierId())) {
+            throw new IllegalArgumentException("El inventario inicial no se puede modificar desde inventario");
+        }
 
         ProductoDocument product = productRepo.findById(lot.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + lot.getProductId()));
@@ -70,8 +69,10 @@ public class AdminProductLotService {
             }
         }
 
-        supplierRepo.findById(req.supplierId())
+        if (!OPENING_STOCK_SUPPLIER_ID.equals(req.supplierId())) {
+            supplierRepo.findById(req.supplierId())
                 .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + req.supplierId()));
+        }
 
         lot.setProductId(req.productId());
         lot.setSupplierId(req.supplierId());
@@ -94,12 +95,36 @@ public class AdminProductLotService {
         return toResponse(lotRepo.save(lot));
     }
 
+    private ProductLotResponse createLot(ProductoDocument product, String supplierId, java.time.LocalDate entryDate, int quantity, double unitValue) {
+        if (!OPENING_STOCK_SUPPLIER_ID.equals(supplierId)) {
+            supplierRepo.findById(supplierId)
+                    .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + supplierId));
+        }
+
+        ProductLotDocument lot = ProductLotDocument.builder()
+                .productId(product.getId())
+                .supplierId(supplierId)
+                .entryDate(entryDate)
+                .quantity(quantity)
+                .unitValue(unitValue)
+                .build();
+        lot = lotRepo.save(lot);
+
+        product.setStockQuantity(product.getStockQuantity() + quantity);
+        productRepo.save(product);
+
+        return toResponse(lot);
+    }
+
     /**
      * Elimina el lote y descuenta su cantidad del stock agregado del producto.
      */
     public void delete(String id) {
         ProductLotDocument lot = lotRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado: " + id));
+        if (OPENING_STOCK_SUPPLIER_ID.equals(lot.getSupplierId())) {
+            throw new IllegalArgumentException("El inventario inicial no se puede eliminar desde inventario");
+        }
         ProductoDocument product = productRepo.findById(lot.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + lot.getProductId()));
         int qty = lot.getQuantity();

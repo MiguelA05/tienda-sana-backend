@@ -14,13 +14,15 @@ import java.util.List;
 public class AdminProductCatalogService {
 
     private final ProductoDocumentRepository productRepo;
+    private final AdminProductLotService lotService;
 
     public List<AdminProductResponse> listAllForAdmin() {
         return productRepo.findAllByOrderByNombreAsc().stream().map(this::toResponse).toList();
     }
 
     public AdminProductResponse create(AdminProductRequest req) {
-        boolean oos = req.outOfStock() != null && req.outOfStock();
+        int initialStock = req.initialStock() == null ? 0 : req.initialStock();
+        boolean oos = req.outOfStock() != null && req.outOfStock() && initialStock <= 0;
         ProductoDocument d = ProductoDocument.builder()
                 .nombre(req.name())
                 .descripcion(req.description())
@@ -31,7 +33,12 @@ public class AdminProductCatalogService {
                 .active(true)
                 .outOfStock(oos)
                 .build();
-        return toResponse(productRepo.save(d));
+        ProductoDocument saved = productRepo.save(d);
+        if (initialStock > 0) {
+            lotService.registerOpeningStock(saved.getId(), initialStock);
+            saved = productRepo.findById(saved.getId()).orElse(saved);
+        }
+        return toResponse(saved);
     }
 
     public AdminProductResponse update(String id, AdminProductRequest req) {
