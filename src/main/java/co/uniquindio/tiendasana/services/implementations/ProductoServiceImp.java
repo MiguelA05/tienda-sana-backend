@@ -14,6 +14,7 @@ import co.uniquindio.tiendasana.model.mongo.ProductoDocument;
 
 import co.uniquindio.tiendasana.repos.mongo.ProductoDocumentRepository;
 
+import co.uniquindio.tiendasana.services.admin.InventoryTransactionService;
 import co.uniquindio.tiendasana.services.interfaces.ProductoService;
 
 import co.uniquindio.tiendasana.services.mongo.ProductCatalogMapper;
@@ -64,17 +65,23 @@ public class ProductoServiceImp implements ProductoService {
 
     private final ProductCatalogMapper catalogMapper;
 
+    private final InventoryTransactionService inventoryTransactionService;
+
 
 
     public ProductoServiceImp(
 
             ProductoDocumentRepository productDocumentRepo,
 
-            ProductCatalogMapper catalogMapper) {
+            ProductCatalogMapper catalogMapper,
+
+            InventoryTransactionService inventoryTransactionService) {
 
         this.productDocumentRepo = productDocumentRepo;
 
         this.catalogMapper = catalogMapper;
+
+        this.inventoryTransactionService = inventoryTransactionService;
 
     }
 
@@ -172,21 +179,33 @@ public class ProductoServiceImp implements ProductoService {
 
     public void reducirCantidadProductosStock(String id, int cantidadComprada) throws Exception {
 
+        reducirCantidadProductosStock(id, cantidadComprada, "venta");
+
+    }
+
+
+
+    @Override
+
+    public void reducirCantidadProductosStock(String id, int cantidadComprada, String inventoryReference) throws Exception {
+
         ProductoDocument doc = productDocumentRepo.findById(id)
 
                 .orElseThrow(() -> new Exception("Producto no encontrado"));
 
-        if (doc.getStockQuantity() - cantidadComprada < 0) {
+        int available = inventoryTransactionService.sumByProduct(id);
+
+        if (available - cantidadComprada < 0) {
 
             throw new Exception("La compra del producto " + doc.getNombre() + " es alta para el stock");
 
         }
 
-        doc.setStockQuantity(doc.getStockQuantity() - cantidadComprada);
+        inventoryTransactionService.recordFifoSale(id, cantidadComprada, inventoryReference, "venta");
+
+        doc.setStockQuantity(inventoryTransactionService.sumByProduct(id));
 
         productDocumentRepo.save(doc);
-
-        System.out.println("Se ha actualizado el producto correctamente");
 
     }
 
@@ -195,6 +214,16 @@ public class ProductoServiceImp implements ProductoService {
     @Override
 
     public void aumentarCantidadProductosStock(String id, int cantidadAReponer) throws Exception {
+
+        aumentarCantidadProductosStock(id, cantidadAReponer, "reembolso");
+
+    }
+
+
+
+    @Override
+
+    public void aumentarCantidadProductosStock(String id, int cantidadAReponer, String inventoryReference) throws Exception {
 
         if (cantidadAReponer <= 0) {
 
@@ -210,7 +239,9 @@ public class ProductoServiceImp implements ProductoService {
 
 
 
-        doc.setStockQuantity(doc.getStockQuantity() + cantidadAReponer);
+        inventoryTransactionService.recordRefund(id, cantidadAReponer, inventoryReference, "reembolso");
+
+        doc.setStockQuantity(inventoryTransactionService.sumByProduct(id));
 
         if (doc.getStockQuantity() > 0) {
 
@@ -221,8 +252,6 @@ public class ProductoServiceImp implements ProductoService {
 
 
         productDocumentRepo.save(doc);
-
-        System.out.println("Se ha repuesto el stock del producto correctamente");
 
     }
 

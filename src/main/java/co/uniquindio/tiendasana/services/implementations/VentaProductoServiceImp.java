@@ -426,8 +426,11 @@ public class VentaProductoServiceImp implements VentaProductoService {
 
 
                 if (ventaProducto.getPago().getStatus().equalsIgnoreCase("APPROVED") && ventaProducto.getPago().getStatusDetail().equalsIgnoreCase("accredited")) {
-                    for (DetalleVentaProducto detalleVentaProducto : ventaProducto.getProductos()){
-                        productoService.reducirCantidadProductosStock(detalleVentaProducto.getProductoId(), detalleVentaProducto.getCantidad());
+                    int idx = 0;
+                    for (DetalleVentaProducto detalleVentaProducto : ventaProducto.getProductos()) {
+                        String invRef = idVenta + "/" + idx++;
+                        productoService.reducirCantidadProductosStock(
+                                detalleVentaProducto.getProductoId(), detalleVentaProducto.getCantidad(), invRef);
                     }
                     enviarResumenVenta(cuenta.getEmail(), ventaProducto);
                     carritoComprasService.borrarTodosLosItemsDelCarrito(ventaProducto.getEmailUsario());
@@ -482,8 +485,10 @@ public class VentaProductoServiceImp implements VentaProductoService {
             throw new IllegalStateException("No se pudo completar el reembolso en Mercado Pago: " + refundResult.message());
         }
 
+        int idx = 0;
         for (DetalleVentaProducto detalle : venta.getProductos()) {
-            productoService.aumentarCantidadProductosStock(detalle.getProductoId(), detalle.getCantidad());
+            String invRef = ventaProductoId + "/refund/" + idx++;
+            productoService.aumentarCantidadProductosStock(detalle.getProductoId(), detalle.getCantidad(), invRef);
         }
 
         pago.setStatus("refunded");

@@ -48,6 +48,8 @@ public interface ProductoService {
      */
     void reducirCantidadProductosStock(String id, int cantidadComprada) throws Exception;
 
+    void reducirCantidadProductosStock(String id, int cantidadComprada, String inventoryReference) throws Exception;
+
     /**
      * Metodo para reponer stock de un producto despues de un reembolso exitoso.
      * @param id Id del producto
@@ -55,6 +57,8 @@ public interface ProductoService {
      * @throws Exception Error al acceder a la base de datos o cantidad invalida
      */
     void aumentarCantidadProductosStock(String id, int cantidadAReponer) throws Exception;
+
+    void aumentarCantidadProductosStock(String id, int cantidadAReponer, String inventoryReference) throws Exception;
 
     ListaProductosDTO filtrarProductos(FiltroProductoDTO filtroProductoDTO) throws Exception;
 

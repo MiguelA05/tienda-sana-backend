@@ -32,5 +32,10 @@ public class ProductLotDocument {
     private LocalDateTime entryDate;
 
     private int quantity;
+
+    /** Si true, el lote no participa en FIFO ni en altas; queda solo para auditoría. */
+    @Builder.Default
+    private boolean voided = false;
+
     private double unitValue;
 }

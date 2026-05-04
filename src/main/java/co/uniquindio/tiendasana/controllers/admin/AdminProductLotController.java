@@ -1,5 +1,7 @@
 package co.uniquindio.tiendasana.controllers.admin;
 
+import co.uniquindio.tiendasana.dto.admin.DeleteLotResultDTO;
+import co.uniquindio.tiendasana.dto.admin.InventoryAdjustmentRequest;
 import co.uniquindio.tiendasana.dto.admin.InventoryResponse;
 import co.uniquindio.tiendasana.dto.admin.ProductLotRequest;
 import co.uniquindio.tiendasana.dto.admin.ProductLotResponse;
@@ -9,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,9 +43,16 @@ public class AdminProductLotController {
     }
 
     @DeleteMapping("/lots/{id}")
-    public ResponseEntity<MessageDTO<String>> deleteLot(@PathVariable String id) {
-        lotService.delete(id);
-        return ResponseEntity.ok(new MessageDTO<>(false, "Lote eliminado"));
+    public ResponseEntity<MessageDTO<DeleteLotResultDTO>> deleteLot(@PathVariable String id) {
+        return ResponseEntity.ok(new MessageDTO<>(false, lotService.deleteLot(id)));
+    }
+
+    @PostMapping("/inventory/adjustment")
+    public ResponseEntity<MessageDTO<String>> adjustInventory(
+            @Valid @RequestBody InventoryAdjustmentRequest request, Authentication authentication) {
+        String user = authentication != null && authentication.getName() != null ? authentication.getName() : "admin";
+        lotService.adjustInventory(request, user);
+        return ResponseEntity.ok(new MessageDTO<>(false, "Ajuste registrado"));
     }
 
     @GetMapping("/inventory")

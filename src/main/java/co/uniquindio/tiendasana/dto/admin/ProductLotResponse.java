@@ -7,7 +7,12 @@ public record ProductLotResponse(
         String productId,
         String supplierId,
         LocalDateTime entryDate,
-        int quantity,
-        double unitValue
-) {
+        /** Cantidad inicial registrada del movimiento de entrada (lote). */
+        int initialQuantity,
+        double unitValue,
+        int quantityRemaining,
+        int quantityConsumed,
+        /** ACTIVO | CONSUMIDO | ANULADO */
+        String status,
+        boolean voided) {
 }

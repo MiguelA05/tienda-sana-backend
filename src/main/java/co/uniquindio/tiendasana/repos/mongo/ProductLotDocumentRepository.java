@@ -10,4 +10,6 @@ public interface ProductLotDocumentRepository extends MongoRepository<ProductLot
     List<ProductLotDocument> findAllByOrderByEntryDateDesc();
 
     List<ProductLotDocument> findByProductIdOrderByEntryDateDesc(String productId);
+
+    List<ProductLotDocument> findByProductIdAndVoidedFalseOrderByEntryDateAsc(String productId);
 }

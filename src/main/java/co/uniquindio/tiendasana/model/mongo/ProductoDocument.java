@@ -10,7 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * Catálogo de productos persistido en MongoDB.
- * El stock ({@code stockQuantity}) se ajusta principalmente mediante {@link ProductLotDocument}.
+ * El stock ({@code stockQuantity}) es caché derivado de la suma de {@code inventory_transactions}
+ * para el producto; la fuente de verdad es el ledger de inventario.
  */
 @Data
 @Builder

@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,9 @@ class AdminProductLotServiceTest {
     @Mock
     private SupplierDocumentRepository supplierRepo;
 
+    @Mock
+    private co.uniquindio.tiendasana.services.admin.InventoryTransactionService transactionService;
+
     @InjectMocks
     private AdminProductLotService service;
 
@@ -45,15 +49,21 @@ class AdminProductLotServiceTest {
                 .build();
 
         when(productRepo.findById("p1")).thenReturn(Optional.of(product));
-        when(lotRepo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(lotRepo.save(any())).thenAnswer(invocation -> {
+            ProductLotDocument l = invocation.getArgument(0);
+            l.setId("lot1");
+            return l;
+        });
+        when(transactionService.sumByProduct("p1")).thenReturn(9);
+        when(transactionService.sumByReference("lot1")).thenReturn(9);
 
         var response = service.registerOpeningStock("p1", 9);
 
-        ArgumentCaptor<ProductLotDocument> captor = ArgumentCaptor.forClass(ProductLotDocument.class);
-        verify(lotRepo).save(captor.capture());
-        assertEquals(AdminProductLotService.OPENING_STOCK_SUPPLIER_ID, captor.getValue().getSupplierId());
+        assertEquals(AdminProductLotService.OPENING_STOCK_SUPPLIER_ID, response.supplierId());
         assertEquals(0.0, response.unitValue());
         assertEquals(9, product.getStockQuantity());
-        verify(productRepo).save(product);
+        assertEquals(9, response.initialQuantity());
+        verify(transactionService)
+                .createTransaction(eq("p1"), eq("ENTRY"), eq(9), any(), eq("system"), eq("Ingreso por lote"));
     }
 }

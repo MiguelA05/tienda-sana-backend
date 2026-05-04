@@ -6,6 +6,7 @@ import co.uniquindio.tiendasana.exceptions.ProductoParseException;
 import co.uniquindio.tiendasana.model.documents.Producto;
 import co.uniquindio.tiendasana.model.mongo.ProductoDocument;
 import co.uniquindio.tiendasana.repos.mongo.ProductoDocumentRepository;
+import co.uniquindio.tiendasana.services.admin.InventoryTransactionService;
 import co.uniquindio.tiendasana.services.implementations.ProductoServiceImp;
 import co.uniquindio.tiendasana.services.mongo.ProductCatalogMapper;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ public class ServicioProductoTest {
 
 	@Mock
 	ProductCatalogMapper catalogMapper;
+
+	@Mock
+	InventoryTransactionService inventoryTransactionService;
 
 	@InjectMocks
 	ProductoServiceImp productoService;
@@ -89,10 +93,12 @@ public class ServicioProductoTest {
 				.build();
 
 		when(productDocumentRepo.findById("p3")).thenReturn(Optional.of(doc));
+		when(inventoryTransactionService.sumByProduct("p3")).thenReturn(10).thenReturn(7);
 
 		productoService.reducirCantidadProductosStock("p3", 3);
 
 		assertEquals(7, doc.getStockQuantity());
+		verify(inventoryTransactionService).recordFifoSale("p3", 3, "venta", "venta");
 		verify(productDocumentRepo, times(1)).save(doc);
 	}
 
@@ -107,6 +113,7 @@ public class ServicioProductoTest {
 				.build();
 
 		when(productDocumentRepo.findById("p4")).thenReturn(Optional.of(doc));
+		when(inventoryTransactionService.sumByProduct("p4")).thenReturn(1);
 
 		Exception ex = assertThrows(Exception.class, () -> productoService.reducirCantidadProductosStock("p4", 2));
 		assertTrue(ex.getMessage().contains("es alta para el stock") || ex.getMessage().contains("no encontrado") );
@@ -124,10 +131,12 @@ public class ServicioProductoTest {
 				.build();
 
 		when(productDocumentRepo.findById("p5")).thenReturn(Optional.of(doc));
+		when(inventoryTransactionService.sumByProduct("p5")).thenReturn(5);
 
 		productoService.aumentarCantidadProductosStock("p5", 5);
 
 		assertEquals(5, doc.getStockQuantity());
+		verify(inventoryTransactionService).recordRefund("p5", 5, "reembolso", "reembolso");
 		assertFalse(doc.isOutOfStock());
 		verify(productDocumentRepo, times(1)).save(doc);
 	}
