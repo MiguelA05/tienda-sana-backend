@@ -10,6 +10,7 @@ import co.uniquindio.tiendasana.repos.mongo.ProductoDocumentRepository;
 import co.uniquindio.tiendasana.repos.mongo.SupplierDocumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,21 +31,24 @@ public class AdminProductLotService {
         return list.stream().map(this::toResponse).toList();
     }
 
+    @Transactional
     public ProductLotResponse create(ProductLotRequest req) {
         ProductoDocument product = productRepo.findById(req.productId())
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + req.productId()));
         return createLot(product, req.supplierId(), req.entryDate(), req.quantity(), req.unitValue());
     }
 
-        public ProductLotResponse registerOpeningStock(String productId, int quantity) {
+    @Transactional
+    public ProductLotResponse registerOpeningStock(String productId, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("La cantidad inicial debe ser mayor a cero");
         }
         ProductoDocument product = productRepo.findById(productId)
-            .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productId));
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productId));
         return createLot(product, OPENING_STOCK_SUPPLIER_ID, java.time.LocalDate.now(), quantity, 0.0);
-        }
+    }
 
+    @Transactional
     public ProductLotResponse update(String id, ProductLotRequest req) {
         ProductLotDocument lot = lotRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Lote no encontrado: " + id));
@@ -95,6 +99,7 @@ public class AdminProductLotService {
         return toResponse(lotRepo.save(lot));
     }
 
+    @Transactional
     private ProductLotResponse createLot(ProductoDocument product, String supplierId, java.time.LocalDate entryDate, int quantity, double unitValue) {
         if (!OPENING_STOCK_SUPPLIER_ID.equals(supplierId)) {
             supplierRepo.findById(supplierId)

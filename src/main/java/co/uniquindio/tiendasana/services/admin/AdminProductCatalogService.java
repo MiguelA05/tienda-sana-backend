@@ -6,6 +6,7 @@ import co.uniquindio.tiendasana.model.mongo.ProductoDocument;
 import co.uniquindio.tiendasana.repos.mongo.ProductoDocumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class AdminProductCatalogService {
         return productRepo.findAllByOrderByNombreAsc().stream().map(this::toResponse).toList();
     }
 
+    @Transactional
     public AdminProductResponse create(AdminProductRequest req) {
         int initialStock = req.initialStock() == null ? 0 : req.initialStock();
         boolean oos = req.outOfStock() != null && req.outOfStock() && initialStock <= 0;
@@ -41,6 +43,7 @@ public class AdminProductCatalogService {
         return toResponse(saved);
     }
 
+    @Transactional
     public AdminProductResponse update(String id, AdminProductRequest req) {
         ProductoDocument d = productRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + id));
