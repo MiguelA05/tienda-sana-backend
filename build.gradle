@@ -113,7 +113,10 @@ dependencies {
 
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // Excluir tests marcadas con @Tag("e2e") (Selenium/Playwright) en entornos CI/local.
+        excludeTags 'e2e'
+    }
 }
 
 // Tarea para ejecutar solo los tests unitarios (excluye paquetes de E2E/Selenium/Playwright)

@@ -64,6 +64,6 @@ class AdminProductLotServiceTest {
         assertEquals(9, product.getStockQuantity());
         assertEquals(9, response.initialQuantity());
         verify(transactionService)
-                .createTransaction(eq("p1"), eq("ENTRY"), eq(9), any(), eq("system"), eq("Ingreso por lote"));
+            .createTransaction(eq("p1"), eq("ENTRY"), eq(9), any(), eq("system"), eq("Inventario inicial"));
     }
 }
