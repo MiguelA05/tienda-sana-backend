@@ -54,11 +54,14 @@ public class EmailServiceImp implements EmailService {
                 .withPlainText(emailDTO.body())
                 .buildEmail();
 
-        try (Mailer mailer = buildMailer()) {
+        Mailer mailer = buildMailer();
+        try {
             mailer.sendMail(email);
         } catch (Exception e) {
             LOG.error("Fallo enviando correo simple a {}: {}", emailDTO.receiver(), e.getMessage(), e);
             throw e;
+        } finally {
+            shutdownMailerQuietly(mailer);
         }
     }
 
@@ -74,12 +77,14 @@ public class EmailServiceImp implements EmailService {
                 .withEmbeddedImage(qrCodeContentId, qrCodeImage, "image/png") // Adjuntar la imagen con el CID
                 .buildEmail();
 
-        try (Mailer mailer = buildMailer()) {
-
+        Mailer mailer = buildMailer();
+        try {
             mailer.sendMail(email);
         } catch (Exception e) {
             LOG.error("Fallo enviando correo HTML a {}: {}", emailDTO.receiver(), e.getMessage(), e);
             throw e;
+        } finally {
+            shutdownMailerQuietly(mailer);
         }
     }
 
@@ -89,6 +94,25 @@ public class EmailServiceImp implements EmailService {
                 .withTransportStrategy(resolveTransportStrategy())
                 .withDebugLogging(SMTP_DEBUG)
                 .buildMailer();
+    }
+
+    /**
+     * Cierra el pool SMTP del mailer si existe (SimpleJavaMail con pooling / batch en classpath).
+     */
+    private void shutdownMailerQuietly(Mailer mailer) {
+        if (mailer == null) {
+            return;
+        }
+        try {
+            mailer.shutdownConnectionPool();
+        } catch (Exception e) {
+            LOG.debug("shutdownConnectionPool: {}", e.getMessage());
+        }
+        try {
+            mailer.close();
+        } catch (Exception e) {
+            LOG.debug("mailer.close: {}", e.getMessage());
+        }
     }
 
     private TransportStrategy resolveTransportStrategy() {

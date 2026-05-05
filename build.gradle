@@ -48,9 +48,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-    // Mail
+    // Mail (sin batch-module: evita pool SMTP global y el WARN de BatchSupport al apagar la JVM)
     implementation 'org.simplejavamail:simple-java-mail:8.11.2'
-    implementation 'org.simplejavamail:batch-module:8.10.1'
 
     // JWT
     implementation 'org.springframework.boot:spring-boot-starter-security'
