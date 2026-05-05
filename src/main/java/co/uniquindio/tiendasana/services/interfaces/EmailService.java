@@ -14,6 +14,13 @@ public interface EmailService {
     void sendEmail(EmailDTO emailDTO) throws Exception;
 
     /**
+     * Sends an email synchronously (useful for internal/local test endpoints).
+     * @param emailDTO Email data
+     * @throws Exception
+     */
+    void sendEmailNow(EmailDTO emailDTO) throws Exception;
+
+    /**
      * Sends an email with html content
      * @param emailDTO Email data
      * @param qrCodeImage Qr code image data
@@ -21,6 +28,15 @@ public interface EmailService {
      * @throws Exception
      */
     void sendEmailHtmlWithAttachment(EmailDTO emailDTO, byte[] qrCodeImage, String qrCodeContentId) throws Exception;
+
+    /**
+     * Sends an email with html content synchronously (useful for internal/local test endpoints).
+     * @param emailDTO Email data
+     * @param qrCodeImage Qr code image data
+     * @param qrCodeContentId
+     * @throws Exception
+     */
+    void sendEmailHtmlWithAttachmentNow(EmailDTO emailDTO, byte[] qrCodeImage, String qrCodeContentId) throws Exception;
 
     /**
      * Obtains ann image

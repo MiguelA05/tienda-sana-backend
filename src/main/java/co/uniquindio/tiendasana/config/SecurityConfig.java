@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                         // Diagnóstico TCP a SMTP desde el servidor (p.ej. Render); no usa credenciales SMTP
                         .requestMatchers(HttpMethod.GET, "/internal/test-smtp").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/internal/test-email").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/create-account").permitAll()

@@ -42,6 +42,10 @@ public class EmailServiceImp implements EmailService {
     @Override
     @Async
     public void sendEmail(EmailDTO emailDTO) throws Exception {
+        sendEmailNow(emailDTO);
+    }
+
+    public void sendEmailNow(EmailDTO emailDTO) throws Exception {
         String apiKey = getResendApiKey();
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("resend.api.key no configurada");
@@ -52,6 +56,10 @@ public class EmailServiceImp implements EmailService {
     @Override
     @Async
     public void sendEmailHtmlWithAttachment(EmailDTO emailDTO, byte[] qrCodeImage, String qrCodeContentId) throws Exception {
+        sendEmailHtmlWithAttachmentNow(emailDTO, qrCodeImage, qrCodeContentId);
+    }
+
+    public void sendEmailHtmlWithAttachmentNow(EmailDTO emailDTO, byte[] qrCodeImage, String qrCodeContentId) throws Exception {
         String apiKey = getResendApiKey();
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("resend.api.key no configurada");
@@ -123,7 +131,8 @@ public class EmailServiceImp implements EmailService {
     }
 
     private void sendResendRequest(ObjectNode body, String apiKey) throws Exception {
-        String url = "https://api.resend.com/messages";
+        // Resend send-email endpoint. Using /messages can fail with restricted API keys.
+        String url = "https://api.resend.com/emails";
         String json = objectMapper.writeValueAsString(body);
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(url))
