@@ -47,7 +47,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Explícitamente permite OPTIONS globalmente
-                    .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                        // Diagnóstico TCP a SMTP desde el servidor (p.ej. Render); no usa credenciales SMTP
+                        .requestMatchers(HttpMethod.GET, "/internal/test-smtp").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/create-account").permitAll()
