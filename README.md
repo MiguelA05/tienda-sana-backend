@@ -40,6 +40,7 @@ Reglas clave:
 
 Estructura real (resumen) del proyecto:
 
+```text
 src/main/java/co/uniquindio/tiendasana/
  ├── controllers/              # REST controllers (public, auth, cliente, admin, internal)
  ├── services/
@@ -63,6 +64,7 @@ src/main/resources/
 docs/
  ├── BACKEND_INIT.md           # Guía de inicio local (variables y comandos)
  └── BACKEND_DOCUMENTATION.md  # Documentación técnica extendida
+```
 
 ## Installation
 
