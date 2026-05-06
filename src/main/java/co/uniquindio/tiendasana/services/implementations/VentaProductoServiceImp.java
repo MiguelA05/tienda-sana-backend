@@ -502,7 +502,7 @@ public class VentaProductoServiceImp implements VentaProductoService {
     }
 
     private String buildFrontendBackUrl(String status) {
-        return mercadoPagoFrontendBaseUrl + "/?status=" + status;
+        return mercadoPagoFrontendBaseUrl + "/carrito?status=" + status;
     }
 
     private String sanitizeBaseUrl(String baseUrl) {
