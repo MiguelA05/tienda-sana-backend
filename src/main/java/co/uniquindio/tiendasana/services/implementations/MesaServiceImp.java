@@ -152,17 +152,13 @@ public class MesaServiceImp implements MesaService {
         return paginatedList;
     }
 
-    private static @NotNull Predicate<Mesa> getMesaPredicate(FiltroMesaDTO filtroMesaDTO) throws Exception {
+    private static @NotNull Predicate<Mesa> getMesaPredicate(FiltroMesaDTO filtroMesaDTO) {
         boolean filtroVacio = (filtroMesaDTO.nombre() == null || filtroMesaDTO.nombre().isEmpty()) &&
                 (filtroMesaDTO.localidad() == null || filtroMesaDTO.localidad().isEmpty()) &&
                 filtroMesaDTO.capacidad() == 0;
 
         if (filtroVacio) {
-            // En lugar de lanzar excepción, podríamos devolver un predicado que acepte todo
-            // si la intención es listar todo cuando no hay filtros.
-            // O mantener la excepción si se requiere al menos un filtro.
-            // Por ahora, mantenemos la excepción.
-            throw new Exception("Debe proporcionar al menos un criterio de filtro para mesas.");
+            return mesa -> mesa != null;
         }
 
         Predicate<Mesa> filtro = mesa -> {

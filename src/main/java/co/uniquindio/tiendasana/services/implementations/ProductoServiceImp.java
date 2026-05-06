@@ -331,9 +331,7 @@ public class ProductoServiceImp implements ProductoService {
 
 
 
-    private static @NotNull Predicate<Producto> getProductoPredicate(FiltroProductoDTO filtroProductoDTO) throws Exception {
-
-        System.out.println("Filtro recibido de producto: " + filtroProductoDTO);
+    private static @NotNull Predicate<Producto> getProductoPredicate(FiltroProductoDTO filtroProductoDTO) {
 
         boolean filtroVacio = (filtroProductoDTO.nombre() == null || filtroProductoDTO.nombre().isEmpty()) &&
 
@@ -345,7 +343,7 @@ public class ProductoServiceImp implements ProductoService {
 
         if (filtroVacio) {
 
-            throw new Exception("Debe proporcionar al menos un criterio de filtro.");
+            return producto -> true;
 
         }
 
@@ -373,7 +371,7 @@ public class ProductoServiceImp implements ProductoService {
 
                 matches &= (producto.getCategoria() != null &&
 
-                        producto.getCategoria().equalsIgnoreCase(filtroProductoDTO.categoria()));
+                        producto.getCategoria().toLowerCase().contains(filtroProductoDTO.categoria().toLowerCase()));
 
             }
 
