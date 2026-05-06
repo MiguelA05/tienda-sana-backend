@@ -27,6 +27,7 @@ import com.mercadopago.resources.preference.Preference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import co.uniquindio.tiendasana.repos.VentaProductoRepo;
+import co.uniquindio.tiendasana.services.admin.InventoryTransactionService;
 import co.uniquindio.tiendasana.services.interfaces.*;
 import com.google.firebase.database.annotations.NotNull;
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ public class VentaProductoServiceImp implements VentaProductoService {
     private final CuentaService cuentaService;
     private final PromocionService promocionService;
     private final VentaProductoRepo ventaProductoRepo;
+    private final InventoryTransactionService inventoryTransactionService;
     private final String mercadoPagoAccessToken;
     private final String mercadoPagoFrontendBaseUrl;
     private final String mercadoPagoWebhookBaseUrl;
@@ -67,6 +69,7 @@ public class VentaProductoServiceImp implements VentaProductoService {
      * @param ventaProductoRepo Repositorio de ventas de productos
      */
     public VentaProductoServiceImp(CuentaService cuentaService, ProductoService productoService, CarritoComprasService carritoComprasService, EmailService emailService, PromocionService promocionService, VentaProductoRepo ventaProductoRepo,
+                                   InventoryTransactionService inventoryTransactionService,
                                    @Value("${mercadopago.access-token:}") String mercadoPagoAccessToken,
                                    @Value("${mercadopago.frontend-base-url:http://localhost:4200}") String mercadoPagoFrontendBaseUrl,
                                    @Value("${mercadopago.webhook-base-url:http://localhost:8080}") String mercadoPagoWebhookBaseUrl) {
@@ -77,9 +80,26 @@ public class VentaProductoServiceImp implements VentaProductoService {
         this.promocionService = promocionService;
 
         this.ventaProductoRepo = ventaProductoRepo;
+        this.inventoryTransactionService = inventoryTransactionService;
         this.mercadoPagoAccessToken = mercadoPagoAccessToken;
         this.mercadoPagoFrontendBaseUrl = sanitizeBaseUrl(mercadoPagoFrontendBaseUrl);
         this.mercadoPagoWebhookBaseUrl = sanitizeBaseUrl(mercadoPagoWebhookBaseUrl);
+    }
+
+    /**
+     * Valida que el stock actual (ledger) permita la cantidad solicitada antes de iniciar pago.
+     * Esto evita que un usuario llegue a pasarela con un carrito desfasado por compras de terceros.
+     */
+    private void assertStockAvailableOrThrow(String productId, int requestedQty, String productNameForMessage) {
+        if (requestedQty <= 0) {
+            throw new IllegalArgumentException("Cantidad inválida para el producto " + productNameForMessage);
+        }
+        int available = inventoryTransactionService.sumByProduct(productId);
+        if (requestedQty > available) {
+            String name = productNameForMessage != null && !productNameForMessage.isBlank() ? productNameForMessage : productId;
+            throw new IllegalStateException(
+                    "Stock insuficiente para \"" + name + "\". Disponible: " + available + ", solicitado: " + requestedQty + ". Actualiza tu carrito e intenta de nuevo.");
+        }
     }
 
     /**
@@ -143,6 +163,7 @@ public class VentaProductoServiceImp implements VentaProductoService {
             try {
 
                 Producto producto = productoService.obtenerProducto(String.valueOf(carDetail.getProductoId()));
+                assertStockAvailableOrThrow(producto.getId(), carDetail.getCantidad(), producto.getNombre());
 
                 DetalleVentaProducto orderDetail = new DetalleVentaProducto();
                 orderDetail.setProductoId(carDetail.getProductoId());
@@ -326,6 +347,8 @@ public class VentaProductoServiceImp implements VentaProductoService {
             for (DetalleVentaProducto item : ventaGuardar.getProductos()) {
                 // Obtener el evento y la localidad del ítem
                 Producto producto = productoService.obtenerProducto(item.getProductoId());
+                // Re-validación de stock justo antes de crear preferencia (evita carritos desfasados)
+                assertStockAvailableOrThrow(producto.getId(), item.getCantidad(), producto.getNombre());
 
                 float unitPrice = (promocion != null) ?
                         Math.max(0, producto.getPrecioUnitario() - (producto.getPrecioUnitario() * promocion.getPorcentajeDescuento())) :
@@ -384,9 +407,12 @@ public class VentaProductoServiceImp implements VentaProductoService {
                     preference.getInitPoint(),
                     ventaProductoId
             );
-        }catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception("Error al crear la preferencia de pago");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            // Propaga mensajes de negocio (p. ej. stock insuficiente) para que el cliente reciba retroalimentación.
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error al crear la preferencia de pago. ventaId={}", ventaProductoId, e);
+            throw new Exception("Error al crear la preferencia de pago: " + e.getMessage());
         }
 
     }
